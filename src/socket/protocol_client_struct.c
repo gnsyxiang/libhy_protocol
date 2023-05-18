@@ -2,10 +2,10 @@
  * 
  * Release under GPLv-3.0.
  * 
- * @file    hy_protocol_server_struct.c
+ * @file    protocol_client_struct.c
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
- * @date    18/05 2023 17:08
+ * @date    18/05 2023 10:44
  * @version v0.0.1
  * 
  * @since    note
@@ -15,36 +15,38 @@
  *     NO.     Author              Date            Modified
  *     00      zhenquan.qiu        18/05 2023      create the file
  * 
- *     last modified: 18/05 2023 17:08
+ *     last modified: 18/05 2023 10:44
  */
 #include <stdio.h>
+#include <unistd.h>
 
 #include <hy_log/hy_log.h>
 
 #include <hy_utils/hy_assert.h>
 #include <hy_utils/hy_mem.h>
 #include <hy_utils/hy_string.h>
-#include <hy_utils/hy_thread.h>
 #include <hy_utils/hy_socket.h>
-#include <hy_utils/hy_fifo_lock.h>
 #include <hy_utils/hy_file.h>
+#include <hy_utils/hy_type.h>
+#include <hy_utils/hy_thread.h>
+#include <hy_utils/hy_fifo_lock.h>
 
 #include "protocol.h"
-#include "hy_protocol_server.h"
+#include "protocol_client_struct.h"
 
-struct HyProtocolServer_s {
-    HyProtocolServerSaveConfig_s    save_c;
+typedef struct HyProtocolClient_s {
+    HyProtocolSaveConfig_s      save_c;
 
     hy_s32_t                        is_exit;
     HyThread_s                      *read_thread_h;
     HyThread_s                      *handle_thread_h;
     HyFifoLock_s                    *fifo_h;
-};
+} HyProtocolClient_s;
 
 static hy_s32_t _handle_loop_cb(void *args)
 {
-    HyProtocolServer_s *handle = args;
-    HyProtocolServerSaveConfig_s *save_c = &handle->save_c;
+    HyProtocolClient_s *handle = args;
+    HyProtocolSaveConfig_s *save_c = &handle->save_c;
     protocol_msg_head_s head;
     hy_s32_t ret;
     char *buf = HY_MEM_CALLOC_RETURN_VAL(char *, 1024 * 32, -1);
@@ -86,29 +88,25 @@ static hy_s32_t _handle_loop_cb(void *args)
 
 static hy_s32_t _read_loop_cb(void *args)
 {
-    HyProtocolServer_s *handle = args;
-    HyProtocolServerSaveConfig_s *save_c = &handle->save_c;
+    HyProtocolClient_s *handle = args;
+    HyProtocolSaveConfig_s *save_c = &handle->save_c;
     hy_s32_t socket_fd;
-    hy_s32_t new_fd;
     hy_s32_t ret;
     char buf[1024];
-    struct sockaddr_in client_addr;
-
-    socket_fd = HySocketCreate(HY_SOCKET_DOMAIN_TCP);
-    if (-1 == socket_fd) {
-        LOGE("HySocketCreate failed \n");
-        return -1;
-    }
-
-    if (-1 == HySocketListen(socket_fd, save_c->ip, save_c->port)) {
-        HySocketDestroy(&socket_fd);
-
-        LOGE("HySocketListen failed \n");
-        return -1;
-    }
 
     while (!handle->is_exit) {
-        new_fd = HySocketAccept(socket_fd, &client_addr);
+        socket_fd = HySocketCreate(HY_SOCKET_DOMAIN_TCP);
+        if (-1 == socket_fd) {
+            LOGE("HySocketCreate faield \n");
+            continue;
+        }
+
+        if (-1 == HySocketConnect(socket_fd, save_c->ip, save_c->port)) {
+            LOGE("HySocketConnect failed \n");
+            HySocketDestroy(&socket_fd);
+            continue;
+        }
+        LOGI("socket connect ok \n");
 
         while (!handle->is_exit) {
             ret = HyFileReadTimeout(socket_fd, buf, 1024, 1000);
@@ -121,7 +119,11 @@ static hy_s32_t _read_loop_cb(void *args)
             }
         }
 
-        HySocketDestroy(&new_fd);
+        HySocketDestroy(&socket_fd);
+
+        if (handle->is_exit) {
+            break;
+        }
     }
 
     if (socket_fd) {
@@ -131,25 +133,29 @@ static hy_s32_t _read_loop_cb(void *args)
     return -1;
 }
 
-void HyProtocolServerDestroy(HyProtocolServer_s **handle_pp)
+void protocol_client_destroy(void **handle_pp)
 {
     HY_ASSERT_RET(!handle_pp || !*handle_pp);
-    HyProtocolServer_s *handle = *handle_pp;
+    HyProtocolClient_s *handle = *handle_pp;
 
+    handle->is_exit = 1;
+    HyFifoLockDestroy(&handle->fifo_h);
+
+    HyThreadDestroy(&handle->handle_thread_h);
     HyThreadDestroy(&handle->read_thread_h);
 
-    LOGI("protocol server destroy, handle: %p \n", handle);
+    LOGI("protocol client create, handle: %p \n", handle);
     HY_MEM_FREE_PP(handle_pp);
 }
 
-HyProtocolServer_s *HyProtocolServerCreate(HyProtocolServerConfig_s *server_c)
+void *protocol_client_create(HyProtocolConfig_s *client_c)
 {
-    HY_ASSERT_RET_VAL(!server_c, NULL);
-    HyProtocolServer_s *handle = NULL;
+    HY_ASSERT_RET_VAL(!client_c, NULL);
+    HyProtocolClient_s *handle = NULL;
 
     do {
-        handle = HY_MEM_CALLOC_BREAK(HyProtocolServer_s *, sizeof(*handle));
-        HY_MEMCPY(&handle->save_c, &server_c->save_c, sizeof(handle->save_c));
+        handle = HY_MEM_CALLOC_BREAK(HyProtocolClient_s *, sizeof(*handle));
+        HY_MEMCPY(&handle->save_c, &client_c->save_c, sizeof(handle->save_c));
 
         handle->fifo_h = HyFifoLockCreate_m(1024 * 64);
         if (!handle->fifo_h) {
@@ -171,10 +177,11 @@ HyProtocolServer_s *HyProtocolServerCreate(HyProtocolServerConfig_s *server_c)
             break;
         }
 
-        LOGI("protocol server create, handle: %p \n", handle);
+        LOGI("protocol client create, handle: %p \n", handle);
         return handle;
     } while(0);
 
-    LOGE("protocol server create failed \n");
+    LOGE("protocol client create failed \n");
+    protocol_client_destroy((void **)&handle);
     return NULL;
 }

@@ -32,7 +32,6 @@
 #include <hy_utils/hy_utils.h>
 
 #include "hy_protocol.h"
-#include "hy_protocol_client.h"
 
 #define _APP_NAME           "hy_protocol_client_demo"
 #define _SERVER_IP          "192.168.0.15"
@@ -40,7 +39,7 @@
 
 typedef struct {
     hy_s32_t            is_exit;
-    HyProtocolClient_s  *protocol_client_h;
+    void                *protocol_client_h;
 } _main_context_s;
 
 static void _handle_cmd_version(void *buf, hy_u32_t len, void *args)
@@ -113,7 +112,7 @@ static void _handle_module_destroy(_main_context_s *context)
 {
     // note: 增加或删除要同步到HyModuleCreateHandle_s中
     HyModuleDestroyHandle_s module[] = {
-        {"protocol client", (void **)&context->protocol_client_h, (HyModuleDestroyHandleCb_t)HyProtocolClientDestroy},
+        {"protocol client", (void **)&context->protocol_client_h, (HyModuleDestroyHandleCb_t)HyProtocolDestroy},
     };
 
     HY_MODULE_RUN_DESTROY_HANDLE(module);
@@ -121,9 +120,9 @@ static void _handle_module_destroy(_main_context_s *context)
 
 static hy_s32_t _handle_module_create(_main_context_s *context)
 {
-    HyProtocolClientConfig_s client_c;
+    HyProtocolConfig_s client_c;
     HY_MEMSET(&client_c, sizeof(client_c));
-    HyProtocolClientHandleCmd_s handle_cmd[] = {
+    HyProtocolHandleCmd_s handle_cmd[] = {
         {HY_PROTOCOL_CMD_VERSION,       _handle_cmd_version},
     };
     client_c.save_c.ip = _SERVER_IP;
@@ -134,7 +133,7 @@ static hy_s32_t _handle_module_create(_main_context_s *context)
 
     // note: 增加或删除要同步到HyModuleDestroyHandle_s中
     HyModuleCreateHandle_s module[] = {
-        {"protocol client", (void **)&context->protocol_client_h, (void *)&client_c, (HyModuleCreateHandleCb_t)HyProtocolClientCreate, (HyModuleDestroyHandleCb_t)HyProtocolClientDestroy},
+        {"protocol client", (void **)&context->protocol_client_h, (void *)&client_c, (HyModuleCreateHandleCb_t)HyProtocolCreate, (HyModuleDestroyHandleCb_t)HyProtocolDestroy},
     };
 
     HY_MODULE_RUN_CREATE_HANDLE(module);

@@ -30,7 +30,7 @@ install_includedir      = $(includedir)/@project_name@
 # add necessary content
 # ---------------------
 _no_install_headers_com += \
-                           socket_client.h
+                           protocol_client_struct.h
 
 _install_headers_com    += 
 

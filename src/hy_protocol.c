@@ -26,6 +26,8 @@
 #include <hy_utils/hy_string.h>
 
 #include "protocol.h"
+#include "protocol_client_struct.h"
+#include "protocol_server_struct.h"
 #include "hy_protocol.h"
 
 #define _PROTOCOL_INI_HEAD(_head, _cmd, _len) \
@@ -40,26 +42,50 @@ do { \
     _head->check_sum = _check_sum; \
 } while(0);
 
-hy_s32_t HyProtocolVersion(void **buf, HyProtocolVersion_s *version)
+hy_s32_t HyProtocolVersion(void *handle, HyProtocolVersion_s *version)
 {
-    HY_ASSERT_RET_VAL(!buf || !version, -1);
+    // HY_ASSERT_RET_VAL(!buf || !version, -1);
+    //
+    // protocol_msg_head_s *head = NULL;
+    // hy_u32_t version_len = sizeof(HyProtocolVersion_s);
+    // hy_s32_t frame_len = sizeof(protocol_msg_head_s) + version_len;
+    // hy_u16_t check_sum;
+    //
+    // head = HY_MEM_CALLOC_RETURN_VAL(protocol_msg_head_s *, frame_len, -1);
+    //
+    // _PROTOCOL_INI_HEAD(head, HY_PROTOCOL_CMD_VERSION, version_len);
+    //
+    // HY_MEMCPY(head->data, version, sizeof(*version));
+    //
+    // check_sum = protocol_generate_sum(head, frame_len);
+    //
+    // _PROTOCOL_INI_HEAD_CHECKSUM(head, check_sum);
+    //
+    // *buf = head;
+    // return frame_len;
+    return 0;
+}
 
-    protocol_msg_head_s *head = NULL;
-    hy_u32_t version_len = sizeof(HyProtocolVersion_s);
-    hy_s32_t frame_len = sizeof(protocol_msg_head_s) + version_len;
-    hy_u16_t check_sum;
+void HyProtocolDestroy(void **handle_pp)
+{
+    HY_ASSERT_RET(!handle_pp || !*handle_pp);
+    HyProtocolSaveConfig_s *save_c = (HyProtocolSaveConfig_s *)*handle_pp;
 
-    head = HY_MEM_CALLOC_RETURN_VAL(protocol_msg_head_s *, frame_len, -1);
+    if (HY_PROTOCOL_TYPE_SERVER == save_c->type) {
+        return protocol_client_destroy(handle_pp);
+    } else {
+        return protocol_server_destroy(handle_pp);
+    }
+}
 
-    _PROTOCOL_INI_HEAD(head, HY_PROTOCOL_CMD_VERSION, version_len);
+void *HyProtocolCreate(HyProtocolConfig_s *protocol_c)
+{
+    HY_ASSERT_RET_VAL(!protocol_c, NULL);
 
-    HY_MEMCPY(head->data, version, sizeof(*version));
-
-    check_sum = protocol_generate_sum(head, frame_len);
-
-    _PROTOCOL_INI_HEAD_CHECKSUM(head, check_sum);
-
-    *buf = head;
-    return frame_len;
+    if (HY_PROTOCOL_TYPE_SERVER == protocol_c->save_c.type) {
+        return protocol_client_create(protocol_c);
+    } else {
+        return protocol_server_create(protocol_c);
+    }
 }
 

@@ -32,15 +32,14 @@
 #include <hy_utils/hy_utils.h>
 
 #include "hy_protocol.h"
-#include "hy_protocol_server.h"
 
 #define _APP_NAME           "hy_protocol_client_demo"
 #define _SERVER_IP          NULL
 #define _SERVER_PORT        (8899)
 
 typedef struct {
-    hy_s32_t            is_exit;
-    HyProtocolServer_s  *protocol_client_h;
+    hy_s32_t        is_exit;
+    void            *protocol_client_h;
 } _main_context_s;
 
 static void _handle_cmd_version(void *buf, hy_u32_t len, void *args)
@@ -114,7 +113,7 @@ static void _handle_module_destroy(_main_context_s *context)
 {
     // note: 增加或删除要同步到HyModuleCreateHandle_s中
     HyModuleDestroyHandle_s module[] = {
-        {"protocol client", (void **)&context->protocol_client_h, (HyModuleDestroyHandleCb_t)HyProtocolServerDestroy},
+        {"protocol client", (void **)&context->protocol_client_h, (HyModuleDestroyHandleCb_t)HyProtocolDestroy},
     };
 
     HY_MODULE_RUN_DESTROY_HANDLE(module);
@@ -122,20 +121,20 @@ static void _handle_module_destroy(_main_context_s *context)
 
 static hy_s32_t _handle_module_create(_main_context_s *context)
 {
-    HyProtocolServerConfig_s server_c;
-    HY_MEMSET(&server_c, sizeof(server_c));
-    HyProtocolServerHandleCmd_s handle_cmd[] = {
+    HyProtocolConfig_s protocol_c;
+    HY_MEMSET(&protocol_c, sizeof(protocol_c));
+    HyProtocolHandleCmd_s handle_cmd[] = {
         {HY_PROTOCOL_CMD_VERSION,       _handle_cmd_version},
     };
-    server_c.save_c.ip = _SERVER_IP;
-    server_c.save_c.port = _SERVER_PORT;
-    server_c.save_c.handle_cmd = handle_cmd;
-    server_c.save_c.handle_cmd_cnt = HY_UTILS_ARRAY_CNT(handle_cmd);
-    server_c.save_c.handle_cmd_args = context;
+    protocol_c.save_c.ip = _SERVER_IP;
+    protocol_c.save_c.port = _SERVER_PORT;
+    protocol_c.save_c.handle_cmd = handle_cmd;
+    protocol_c.save_c.handle_cmd_cnt = HY_UTILS_ARRAY_CNT(handle_cmd);
+    protocol_c.save_c.handle_cmd_args = context;
 
     // note: 增加或删除要同步到HyModuleDestroyHandle_s中
     HyModuleCreateHandle_s module[] = {
-        {"protocol client", (void **)&context->protocol_client_h, (void *)&server_c, (HyModuleCreateHandleCb_t)HyProtocolServerCreate, (HyModuleDestroyHandleCb_t)HyProtocolServerDestroy},
+        {"protocol client", (void **)&context->protocol_client_h, (void *)&protocol_c, (HyModuleCreateHandleCb_t)HyProtocolCreate, (HyModuleDestroyHandleCb_t)HyProtocolDestroy},
     };
 
     HY_MODULE_RUN_CREATE_HANDLE(module);

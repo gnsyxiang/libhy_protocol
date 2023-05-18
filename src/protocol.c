@@ -21,10 +21,6 @@
 
 #include <hy_log/hy_log.h>
 
-#include <hy_utils/hy_assert.h>
-#include <hy_utils/hy_mem.h>
-#include <hy_utils/hy_string.h>
-
 #include "protocol.h"
 #include "hy_protocol.h"
 
@@ -57,6 +53,7 @@ hy_u16_t protocol_check_sum(protocol_msg_head_s *frame, hy_u32_t len)
     if (frame->check_sum == protocol_generate_sum(frame, len)) {
         return 1;
     } else {
+        LOGW("protocol check sum failed \n");
         return 0;
     }
 }
