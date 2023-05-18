@@ -29,6 +29,7 @@ SELECT_VENDER
 SELECT_CHIP
 # SELECT_PRODUCT
 SELECT_LANGUAGE
+SELECT_SOCKET_TYPE
 
 AC_ARG_ENABLE([debug_info],
               [AS_HELP_STRING([--enable-debug_info], [enable support for output debug info])],
