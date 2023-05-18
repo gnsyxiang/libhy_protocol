@@ -18,6 +18,9 @@
 #     last modified: 05/03 2021 10:35
 # ===============================================================
 
+SUBDIRS = \
+          libevent
+
 # ------------------
 # defining variables
 # ------------------
@@ -29,11 +32,11 @@ install_includedir      = $(includedir)/@project_name@
 # ---------------------
 # add necessary content
 # ---------------------
-_no_install_headers_com +=
+_no_install_headers_com += \
+                           protocol.h
 
 _install_headers_com    += \
-                           hy_calc.h    \
-                           hy_module.h
+                           hy_protocol.h
 
 # ------------------
 # make install files
