@@ -54,9 +54,9 @@ _cxxflags_com   +=
 
 _ldflags_com    +=
 
-_ldadd_com      += \
-                   $(top_builddir)/src/lib@project_name@.la \
-                   $(ldadd_com)
+_ldadd_com      += $(ldadd_com)
+
+_ldadd_com      += $(top_builddir)/src/lib@project_name@.la -lpthread
 
 bin_PROGRAMS                        += hy_protocol_client_demo
 hy_protocol_client_demo_SOURCES     = $(_sources_com) hy_protocol_client_demo.c
@@ -64,3 +64,4 @@ hy_protocol_client_demo_CPPFLAGS    = $(_cppflags_com)
 hy_protocol_client_demo_CFLAGS      = $(_cflags_com)
 hy_protocol_client_demo_CXXFLAGS    = $(_cxxflags_com)
 hy_protocol_client_demo_LDFLAGS     = $(_ldflags_com)
+hy_protocol_client_demo_LDADD       = $(_ldadd_com)

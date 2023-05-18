@@ -71,11 +71,22 @@ typedef struct {
 
 ### 协议体
 
+30s发送一次心跳包，数据包也当做是心跳包。心跳包只发送数据头，回复也是只发送数据头。
+
 ---
 
+* `HY_PROTOCOL_VERSION`
+
 * 结构体
+
+```c
+typedef struct {
+    char version[32];
+} HyProtocolVersion_s;
+```
 
 * json数据
 
 * protobuf
+
 

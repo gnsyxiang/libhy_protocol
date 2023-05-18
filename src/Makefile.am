@@ -52,7 +52,8 @@ _define_com     +=
 
 _include_com    += -I$(top_srcdir)/include
 
-_sources_com    +=
+_sources_com    += \
+                   protocol.c
 
 _cppflags_com   += \
                    $(_no_error_com) \
@@ -85,4 +86,3 @@ lib@project_name@_la_CFLAGS     = $(_cflags_com)
 lib@project_name@_la_CXXFLAGS   = $(_cxxflags_com)
 lib@project_name@_la_LDFLAGS    = $(_ldflags_com)
 lib@project_name@_la_LIBADD     = $(_ldadd_com)
-

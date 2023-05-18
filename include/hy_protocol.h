@@ -27,42 +27,38 @@ extern "C" {
 #include <hy_utils/hy_type.h>
 
 typedef enum {
-    HY_PROTOCOL_SERVER_CMD_PROTOCOL_VERSION,
-    HY_PROTOCOL_SERVER_CMD_DEFAULT_CONFIG,
-} HyProtocolServerCmd_e;
-
-
-typedef enum {
-    HY_PROTOCOL_CLIENT_CMD_PROTOCOL_VERSION,
-    HY_PROTOCOL_CLIENT_CMD_DEFAULT_CONFIG,
-} HyProtocolClientCmd_e;
-
-typedef void (*HyProtocolClientHandleCmdCb_t)(const char *buf, hy_u32_t len, void *args);
+    HY_PROTOCOL_CMD_HEARTBEAT,
+    HY_PROTOCOL_CMD_VERSION,
+} HyProtocolCmd_e;
 
 typedef struct {
-    hy_u32_t                        cmd;
-    HyProtocolClientHandleCmdCb_t   handle_cmd_cb;
-    void                            *args;
-} HyProtocolClientHandleCmd_s;
+    char version[32];
+} HyProtocolVersion_s;
+
+typedef void (*HyProtocolHandleCmdCb_t)(void *buf, hy_u32_t len, void *args);
 
 typedef struct {
-    const char                      *ip;
-    hy_u16_t                        port;
-
-    HyProtocolClientHandleCmd_s     *handle_cmd;
-    hy_u32_t                        handle_cmd_cnt;
-} HyProtocolClientSaveConfig_s;
+    hy_u32_t                    cmd;
+    HyProtocolHandleCmdCb_t     handle_cmd_cb;
+} HyProtocolHandleCmd_s;
 
 typedef struct {
-    HyProtocolClientSaveConfig_s    save_c;
-} HyProtocolClientConfig_s;
+    const char                  *ip;
+    hy_u16_t                    port;
 
-typedef struct HyProtocolClient_s HyProtocolClient_s;
+    HyProtocolHandleCmd_s       *handle_cmd;
+    void                        *args;
+    hy_u32_t                    handle_cmd_cnt;
+} HyProtocolSaveConfig_s;
 
-HyProtocolClient_s *HyProtocolClientCreate(HyProtocolClientConfig_s *client_c);
-void HyProtocolClientDestroy(HyProtocolClient_s **handle_pp);
+typedef struct {
+    HyProtocolSaveConfig_s      save_c;
+} HyProtocolConfig_s;
 
-void HyEventListenerExit(HyProtocolClient_s *handle);
+typedef struct HyProtocol_s HyProtocol_s;
+
+HyProtocol_s *HyProtocolCreate(HyProtocolConfig_s *protocol_c);
+void HyProtocolDestroy(HyProtocol_s **handle_pp);
 
 #ifdef __cplusplus
 }

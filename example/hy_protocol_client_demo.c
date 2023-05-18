@@ -35,14 +35,14 @@
 
 #define _APP_NAME           "hy_protocol_client_demo"
 #define _SERVER_IP          "192.168.0.15"
-#define _SERVER_PORT        (1128)
+#define _SERVER_PORT        (8899)
 
 typedef struct {
-    hy_s32_t            is_exit;
-    HyProtocolClient_s  *protocol_client_h;
+    hy_s32_t        is_exit;
+    HyProtocol_s    *protocol_client_h;
 } _main_context_s;
 
-static void _handle_protocol_version(const char *buf, hy_u32_t len, void *args)
+static void _handle_cmd_version(void *buf, hy_u32_t len, void *args)
 {
 
 }
@@ -53,8 +53,6 @@ static void _signal_error_cb(void *args)
 
     _main_context_s *context = args;
     context->is_exit = 1;
-
-    HyEventListenerExit(context->protocol_client_h);
 }
 
 static void _signal_user_cb(void *args)
@@ -63,7 +61,6 @@ static void _signal_user_cb(void *args)
 
     _main_context_s *context = args;
     context->is_exit = 1;
-    HyEventListenerExit(context->protocol_client_h);
 }
 
 static void _bool_module_destroy(void)
@@ -115,7 +112,7 @@ static void _handle_module_destroy(_main_context_s *context)
 {
     // note: 增加或删除要同步到HyModuleCreateHandle_s中
     HyModuleDestroyHandle_s module[] = {
-        {"protocol client", (void **)&context->protocol_client_h, (HyModuleDestroyHandleCb_t)HyProtocolClientDestroy},
+        {"protocol client", (void **)&context->protocol_client_h, (HyModuleDestroyHandleCb_t)HyProtocolDestroy},
     };
 
     HY_MODULE_RUN_DESTROY_HANDLE(module);
@@ -123,19 +120,20 @@ static void _handle_module_destroy(_main_context_s *context)
 
 static hy_s32_t _handle_module_create(_main_context_s *context)
 {
-    HyProtocolClientConfig_s client_c;
+    HyProtocolConfig_s client_c;
     HY_MEMSET(&client_c, sizeof(client_c));
-    HyProtocolClientHandleCmd_s handle_cmd[] = {
-        {HY_PROTOCOL_SERVER_CMD_PROTOCOL_VERSION, _handle_protocol_version, context},
+    HyProtocolHandleCmd_s handle_cmd[] = {
+        {HY_PROTOCOL_CMD_VERSION, _handle_cmd_version},
     };
     client_c.save_c.ip = _SERVER_IP;
     client_c.save_c.port = _SERVER_PORT;
     client_c.save_c.handle_cmd = handle_cmd;
+    client_c.save_c.args = context;
     client_c.save_c.handle_cmd_cnt = HY_UTILS_ARRAY_CNT(handle_cmd);
 
     // note: 增加或删除要同步到HyModuleDestroyHandle_s中
     HyModuleCreateHandle_s module[] = {
-        {"protocol client", (void **)&context->protocol_client_h, (void *)&client_c, (HyModuleCreateHandleCb_t)HyProtocolClientCreate, (HyModuleDestroyHandleCb_t)HyProtocolClientDestroy},
+        {"protocol client", (void **)&context->protocol_client_h, (void *)&client_c, (HyModuleCreateHandleCb_t)HyProtocolCreate, (HyModuleDestroyHandleCb_t)HyProtocolDestroy},
     };
 
     HY_MODULE_RUN_CREATE_HANDLE(module);
@@ -170,4 +168,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
