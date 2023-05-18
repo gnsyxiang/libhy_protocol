@@ -26,15 +26,6 @@ extern "C" {
 
 #include <hy_utils/hy_type.h>
 
-typedef enum {
-    HY_PROTOCOL_SERVER_CMD_HEARTBEAT,
-    HY_PROTOCOL_SERVER_CMD_VERSION,
-} HyProtocolServerCmd_e;
-
-typedef struct {
-    char version[32];
-} HyProtocolServerVersion_s;
-
 typedef void (*HyProtocolServerHandleCmdCb_t)(void *buf, hy_u32_t len, void *args);
 
 typedef struct {
@@ -47,7 +38,7 @@ typedef struct {
     hy_u16_t                        port;
 
     HyProtocolServerHandleCmd_s     *handle_cmd;
-    void                            *args;
+    void                            *handle_cmd_args;
     hy_u32_t                        handle_cmd_cnt;
 } HyProtocolServerSaveConfig_s;
 

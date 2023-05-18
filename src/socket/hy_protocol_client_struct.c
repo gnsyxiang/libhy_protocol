@@ -76,7 +76,7 @@ static hy_s32_t _handle_loop_cb(void *args)
             if (head.cmd == save_c->handle_cmd[i].cmd
                 && save_c->handle_cmd[i].handle_cmd_cb) {
                 save_c->handle_cmd[i].handle_cmd_cb(buf + sizeof(head),
-                                                    head.len, save_c->args);
+                                                    head.len, save_c->handle_cmd_args);
                 break;
             }
         }

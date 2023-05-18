@@ -53,6 +53,7 @@ _define_com     +=
 _include_com    += -I$(top_srcdir)/include
 
 _sources_com    += \
+                   hy_protocol.c \
                    protocol.c
 
 _cppflags_com   += \

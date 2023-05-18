@@ -31,6 +31,7 @@
 #include <hy_utils/hy_module.h>
 #include <hy_utils/hy_utils.h>
 
+#include "hy_protocol.h"
 #include "hy_protocol_client.h"
 
 #define _APP_NAME           "hy_protocol_client_demo"
@@ -123,13 +124,13 @@ static hy_s32_t _handle_module_create(_main_context_s *context)
     HyProtocolClientConfig_s client_c;
     HY_MEMSET(&client_c, sizeof(client_c));
     HyProtocolClientHandleCmd_s handle_cmd[] = {
-        {HY_PROTOCOL_CLIENT_CMD_VERSION,    _handle_cmd_version},
+        {HY_PROTOCOL_CMD_VERSION,       _handle_cmd_version},
     };
     client_c.save_c.ip = _SERVER_IP;
     client_c.save_c.port = _SERVER_PORT;
     client_c.save_c.handle_cmd = handle_cmd;
     client_c.save_c.handle_cmd_cnt = HY_UTILS_ARRAY_CNT(handle_cmd);
-    client_c.save_c.args = context;
+    client_c.save_c.handle_cmd_args = context;
 
     // note: 增加或删除要同步到HyModuleDestroyHandle_s中
     HyModuleCreateHandle_s module[] = {

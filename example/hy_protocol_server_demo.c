@@ -31,6 +31,7 @@
 #include <hy_utils/hy_module.h>
 #include <hy_utils/hy_utils.h>
 
+#include "hy_protocol.h"
 #include "hy_protocol_server.h"
 
 #define _APP_NAME           "hy_protocol_client_demo"
@@ -44,7 +45,7 @@ typedef struct {
 
 static void _handle_cmd_version(void *buf, hy_u32_t len, void *args)
 {
-    HyProtocolServerVersion_s *version = (HyProtocolServerVersion_s *)buf;
+    HyProtocolVersion_s *version = (HyProtocolVersion_s *)buf;
     LOGI("version: %s \n", version->version);
 }
 
@@ -124,13 +125,13 @@ static hy_s32_t _handle_module_create(_main_context_s *context)
     HyProtocolServerConfig_s server_c;
     HY_MEMSET(&server_c, sizeof(server_c));
     HyProtocolServerHandleCmd_s handle_cmd[] = {
-        {HY_PROTOCOL_SERVER_CMD_VERSION,    _handle_cmd_version},
+        {HY_PROTOCOL_CMD_VERSION,       _handle_cmd_version},
     };
     server_c.save_c.ip = _SERVER_IP;
     server_c.save_c.port = _SERVER_PORT;
     server_c.save_c.handle_cmd = handle_cmd;
     server_c.save_c.handle_cmd_cnt = HY_UTILS_ARRAY_CNT(handle_cmd);
-    server_c.save_c.args = context;
+    server_c.save_c.handle_cmd_args = context;
 
     // note: 增加或删除要同步到HyModuleDestroyHandle_s中
     HyModuleCreateHandle_s module[] = {
