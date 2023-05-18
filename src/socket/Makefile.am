@@ -45,7 +45,7 @@ _include_com    += \
                    -I$(top_srcdir)/include
 
 _sources_com    += \
-                   protocol_struct_client.c
+                   hy_protocol_client_struct.c
 
 _cppflags_com   += \
                    $(_no_error_com) \

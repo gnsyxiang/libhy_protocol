@@ -43,7 +43,7 @@ _no_install_headers_com += \
                            protocol.h
 
 _install_headers_com    += \
-                           hy_protocol.h
+                           hy_protocol_client.h
 
 # ------------------
 # make install files
