@@ -45,6 +45,7 @@ _include_com    += \
                    -I$(top_srcdir)/include
 
 _sources_com    += \
+                   hy_protocol_server_struct.c \
                    hy_protocol_client_struct.c
 
 _cppflags_com   += \
