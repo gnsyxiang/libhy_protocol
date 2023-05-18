@@ -5,7 +5,7 @@
 # @file    Makefile.am
 # @brief   
 # @author  gnsyxiang <gnsyxiang@163.com>
-# @date    05/03 2021 10:35
+# @date    18/05 2023 10:27
 # @version v0.0.1
 # 
 # @since    note
@@ -13,20 +13,10 @@
 # 
 #     change log:
 #     NO.     Author              Date            Modified
-#     00      zhenquan.qiu        05/03 2021      create the file
+#     00      zhenquan.qiu        18/05 2023      create the file
 # 
-#     last modified: 05/03 2021 10:35
+#     last modified: 18/05 2023 10:27
 # ===============================================================
-
-SUBDIRS =
-
-if COMPILE_SELECT_SOCKET_TYPE_LIBEVENT
-SUBDIRS += libevent
-endif
-
-if COMPILE_SELECT_SOCKET_TYPE_SOCKET
-SUBDIRS += socket
-endif
 
 # ------------------
 # defining variables
@@ -40,10 +30,9 @@ install_includedir      = $(includedir)/@project_name@
 # add necessary content
 # ---------------------
 _no_install_headers_com += \
-                           protocol.h
+                           socket_client.h
 
-_install_headers_com    += \
-                           hy_protocol.h
+_install_headers_com    += 
 
 # ------------------
 # make install files

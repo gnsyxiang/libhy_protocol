@@ -83,12 +83,14 @@ AC_CONFIG_FILES([Makefile
                  example/Makefile
                  include/Makefile
                  include/libevent/Makefile
+                 include/socket/Makefile
                  res/Makefile
                  res/voice/Makefile
                  res/voice/cn/Makefile
                  res/voice/en/Makefile
                  src/Makefile
                  src/libevent/Makefile
+                 src/socket/Makefile
                  test/Makefile])
 AC_OUTPUT
 

@@ -18,8 +18,15 @@
 #     last modified: 05/03 2021 10:35
 # ===============================================================
 
-SUBDIRS = \
-          libevent
+SUBDIRS =
+
+if COMPILE_SELECT_SOCKET_TYPE_SOCKET
+SUBDIRS += socket
+endif
+
+if COMPILE_SELECT_SOCKET_TYPE_LIBEVENT
+SUBDIRS += libevent
+endif
 
 lib_LTLIBRARIES = lib@project_name@.la
 
@@ -64,8 +71,13 @@ endif
 
 _ldadd_com      += $(ldadd_com)
 
-_ldadd_com      += \
-                   $(top_builddir)/src/libevent/libhy_libevent.la
+if COMPILE_SELECT_SOCKET_TYPE_LIBEVENT
+_ldadd_com      += $(top_builddir)/src/libevent/libhy_libevent.la
+endif
+
+if COMPILE_SELECT_SOCKET_TYPE_SOCKET
+_ldadd_com      += $(top_builddir)/src/socket/libhy_socket.la
+endif
 
 lib@project_name@_la_SOURCES    = $(_sources_com)
 lib@project_name@_la_CPPFLAGS   = $(_cppflags_com)
