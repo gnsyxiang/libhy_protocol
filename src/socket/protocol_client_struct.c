@@ -34,13 +34,15 @@
 #include "protocol.h"
 #include "protocol_client_struct.h"
 
-typedef struct HyProtocolClient_s {
-    HyProtocolSaveConfig_s      save_c;
+typedef struct {
+    HyProtocolSaveConfig_s  save_c;
 
-    hy_s32_t                        is_exit;
-    HyThread_s                      *read_thread_h;
-    HyThread_s                      *handle_thread_h;
-    HyFifoLock_s                    *fifo_h;
+    hy_s32_t                is_exit;
+    HyThread_s              *read_thread_h;
+    HyThread_s              *handle_thread_h;
+    HyFifoLock_s            *fifo_h;
+
+    hy_s32_t                socket_fd;
 } HyProtocolClient_s;
 
 static hy_s32_t _handle_loop_cb(void *args)
@@ -90,26 +92,25 @@ static hy_s32_t _read_loop_cb(void *args)
 {
     HyProtocolClient_s *handle = args;
     HyProtocolSaveConfig_s *save_c = &handle->save_c;
-    hy_s32_t socket_fd;
     hy_s32_t ret;
     char buf[1024];
 
     while (!handle->is_exit) {
-        socket_fd = HySocketCreate(HY_SOCKET_DOMAIN_TCP);
-        if (-1 == socket_fd) {
+        handle->socket_fd = HySocketCreate(HY_SOCKET_DOMAIN_TCP);
+        if (-1 == handle->socket_fd) {
             LOGE("HySocketCreate faield \n");
             continue;
         }
 
-        if (-1 == HySocketConnect(socket_fd, save_c->ip, save_c->port)) {
+        if (-1 == HySocketConnect(handle->socket_fd, save_c->ip, save_c->port)) {
             LOGE("HySocketConnect failed \n");
-            HySocketDestroy(&socket_fd);
+            HySocketDestroy(&handle->socket_fd);
             continue;
         }
         LOGI("socket connect ok \n");
 
         while (!handle->is_exit) {
-            ret = HyFileReadTimeout(socket_fd, buf, 1024, 1000);
+            ret = HyFileReadTimeout(handle->socket_fd, buf, 1024, 1000);
             if (ret == -1) {
                 LOGE("HyFileRead failed \n");
                 break;
@@ -119,18 +120,37 @@ static hy_s32_t _read_loop_cb(void *args)
             }
         }
 
-        HySocketDestroy(&socket_fd);
+        HySocketDestroy(&handle->socket_fd);
 
         if (handle->is_exit) {
             break;
         }
     }
 
-    if (socket_fd) {
-        HySocketDestroy(&socket_fd);
+    if (handle->socket_fd) {
+        HySocketDestroy(&handle->socket_fd);
     }
 
     return -1;
+}
+
+hy_s32_t protocol_client_protocol_version(void *handle, HyProtocolVersion_s *version)
+{
+    HyProtocolClient_s *context = handle;
+    char *buf = NULL;
+    hy_u32_t len;
+
+    len = protocol_version(&buf, version);
+
+    if (context->socket_fd && buf && len) {
+        len = write(context->socket_fd, buf, len);
+    } else {
+        len = -1;
+    }
+
+    HY_MEM_FREE_PP(&buf);
+
+    return len;
 }
 
 void protocol_client_destroy(void **handle_pp)

@@ -29,6 +29,8 @@ extern "C" {
 void *protocol_client_create(HyProtocolConfig_s *protocol_c);
 void protocol_client_destroy(void **handle_pp);
 
+hy_s32_t protocol_client_protocol_version(void *handle, HyProtocolVersion_s *version);
+
 #ifdef __cplusplus
 }
 #endif

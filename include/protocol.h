@@ -26,6 +26,8 @@ extern "C" {
 
 #include <hy_utils/hy_type.h>
 
+#include "hy_protocol.h"
+
 #define PROTOCOL_MAGIC (0x55aa)
 
 typedef struct {
@@ -38,6 +40,8 @@ typedef struct {
 
 hy_u16_t protocol_generate_sum(protocol_msg_head_s *frame, hy_u32_t len);
 hy_u16_t protocol_check_sum(protocol_msg_head_s *frame, hy_u32_t len);
+
+hy_s32_t protocol_version(char **buf, HyProtocolVersion_s *version);
 
 #ifdef __cplusplus
 }
