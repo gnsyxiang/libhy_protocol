@@ -20,14 +20,6 @@
 
 SUBDIRS =
 
-if COMPILE_SELECT_SOCKET_TYPE_LIBEVENT
-SUBDIRS += libevent
-endif
-
-if COMPILE_SELECT_SOCKET_TYPE_SOCKET
-SUBDIRS += socket
-endif
-
 # ------------------
 # defining variables
 # ------------------
