@@ -23,6 +23,7 @@ PKG_INSTALLDIR
 CHECK_PROJECT_INFO
 CHECK_VERSION_INFO
 CHECK_DOXYGEN
+CHECK_DEBUG_RELEASE
 # CHECK_JAVA
 
 SELECT_VENDER
@@ -30,11 +31,6 @@ SELECT_CHIP
 # SELECT_PRODUCT
 SELECT_LANGUAGE
 SELECT_SOCKET_TYPE
-
-AC_ARG_ENABLE([debug_info],
-              [AS_HELP_STRING([--enable-debug_info], [enable support for output debug info])],
-              [], [enable_debug_info=no])
-AM_CONDITIONAL(COMPILE_DEBUG_INFO, [test "$enable_debug_info" = "yes"])
 
 # Checks for programs.
 AC_PROG_CXX
