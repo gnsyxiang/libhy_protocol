@@ -5,7 +5,7 @@
  * @file    hy_protocol.h
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
- * @date    18/05 2023 17:42
+ * @date    12/10 2023 10:42
  * @version v0.0.1
  * 
  * @since    note
@@ -13,9 +13,9 @@
  * 
  *     change log:
  *     NO.     Author              Date            Modified
- *     00      zhenquan.qiu        18/05 2023      create the file
+ *     00      zhenquan.qiu        12/10 2023      create the file
  * 
- *     last modified: 18/05 2023 17:42
+ *     last modified: 12/10 2023 10:42
  */
 #ifndef __LIBHY_PROTOCOL_INCLUDE_HY_PROTOCOL_H_
 #define __LIBHY_PROTOCOL_INCLUDE_HY_PROTOCOL_H_
@@ -27,39 +27,24 @@ extern "C" {
 #include <hy_log/hy_type.h>
 
 typedef enum {
-    HY_PROTOCOL_CMD_HEARTBEAT,
-    HY_PROTOCOL_CMD_VERSION,
-} HyProtocolCmd_e;
+    HY_PROTOCOL_DEVICE_TYPE_CLIENT,
+    HY_PROTOCOL_DEVICE_TYPE_SERVER,
+} HyProtocolDeviceType_e;
 
 typedef struct {
-    char version[32];
-} HyProtocolVersion_s;
-
-typedef void (*HyProtocolWriteCb_t)(void *buf, hy_u32_t len, void *args);
-
-typedef void (*HyProtocolHandleCmdCb_t)(void *buf, hy_u32_t len, void *args);
-
-typedef struct {
-    hy_u32_t                    cmd;
-    HyProtocolHandleCmdCb_t     handle_cmd_cb;
-} HyProtocolHandleCmd_s;
-
-typedef struct {
-    HyProtocolHandleCmd_s       *handle_cmd;
-    void                        *handle_cmd_args;
-    hy_u32_t                    handle_cmd_cnt;
+    hy_s32_t demo;
 } HyProtocolSaveConfig_s;
 
 typedef struct {
-    HyProtocolSaveConfig_s      save_c;
+    HyProtocolSaveConfig_s  save_c;
+
+    HyProtocolDeviceType_e  device_type;
 } HyProtocolConfig_s;
 
-void *HyProtocolCreate(HyProtocolConfig_s *protocol_c);
-void HyProtocolDestroy(void **handle_pp);
+typedef struct HyProtocol HyProtocol;
 
-hy_s32_t HyProtocolWrite(void *handle, void *buf, hy_u32_t len);
-
-hy_s32_t HyProtocolVersion(void *handle, HyProtocolVersion_s *version);
+HyProtocol *HyProtocolCreate(HyProtocolConfig_s *protocol_c);
+void HyProtocolDestroy(HyProtocol **handle_pp);
 
 #ifdef __cplusplus
 }

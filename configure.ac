@@ -43,22 +43,16 @@ AC_PROG_MAKE_SET
 # AC_PROG_RANLIB
 
 CHECK_LIBCUNIT
-CHECK_LIBEVENT
 CHECK_LIBHY_LOG
 CHECK_LIBHY_UTILS
 
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/socket.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_TYPE_INT8_T
-AC_TYPE_SIZE_T
 
 # Checks for library functions.
-AC_FUNC_MALLOC
-AC_CHECK_FUNCS([socket])
 
 AC_CONFIG_FILES([Makefile
                  $project_name.pc
@@ -78,15 +72,11 @@ AC_CONFIG_FILES([Makefile
                  doc/Makefile
                  example/Makefile
                  include/Makefile
-                 include/libevent/Makefile
-                 include/socket/Makefile
                  res/Makefile
                  res/voice/Makefile
                  res/voice/cn/Makefile
                  res/voice/en/Makefile
                  src/Makefile
-                 src/libevent/Makefile
-                 src/socket/Makefile
                  test/Makefile])
 AC_OUTPUT
 

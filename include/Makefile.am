@@ -5,7 +5,7 @@
 # @file    Makefile.am
 # @brief   
 # @author  gnsyxiang <gnsyxiang@163.com>
-# @date    05/03 2021 10:35
+# @date    12/10 2023 10:47
 # @version v0.0.1
 # 
 # @since    note
@@ -13,9 +13,9 @@
 # 
 #     change log:
 #     NO.     Author              Date            Modified
-#     00      zhenquan.qiu        05/03 2021      create the file
+#     00      zhenquan.qiu        12/10 2023      create the file
 # 
-#     last modified: 05/03 2021 10:35
+#     last modified: 12/10 2023 10:47
 # ===============================================================
 
 SUBDIRS =
@@ -31,8 +31,7 @@ install_includedir      = $(includedir)/@project_name@
 # ---------------------
 # add necessary content
 # ---------------------
-_no_install_headers_com += \
-                           protocol.h
+_no_install_headers_com +=
 
 _install_headers_com    += \
                            hy_protocol.h
