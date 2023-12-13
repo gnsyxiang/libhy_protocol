@@ -26,16 +26,34 @@
 #include <hy_utils/hy_signal.h>
 #include <hy_utils/hy_module.h>
 #include <hy_utils/hy_utils.h>
+#include <hy_utils/hy_socket.h>
+#include <hy_utils/hy_file.h>
 
 #include "config.h"
 
 #include "hy_protocol.h"
 
-#define _APP_NAME "hy_protocol_client_demo"
+#define _APP_NAME               "hy_protocol_client_demo"
+#define _PROTOCOL_SERVER_IP     "192.168.0.251"
+#define _PROTOCOL_PORT          (34567)
 
 typedef struct {
-    hy_s32_t    is_exit;
+    hy_s32_t        is_exit;
+    hy_s32_t        server_fd;
+
+    HyProtocol_s    *protocol_h;
 } _main_context_s;
+
+static hy_s32_t _data_write_cb(const void *buf, hy_u32_t len, void *args)
+{
+    _main_context_s *context = args;
+
+    return HyFileWrite(context->server_fd, buf, len);
+}
+
+static void _version_cb(HyProtocolVersion_s *version, void *args)
+{
+}
 
 static void _signal_error_cb(void *args)
 {
@@ -67,7 +85,7 @@ static hy_s32_t _bool_module_create(_main_context_s *context)
 {
     HyLogConfig_s log_c;
     HY_MEMSET(&log_c, sizeof(HyLogConfig_s));
-    log_c.port                      = 56789;
+    log_c.port                      = 0;
     log_c.fifo_len                  = 10 * 1024;
     log_c.config_file               = "../res/hy_log/zlog.conf";
     log_c.save_c.level              = HY_LOG_LEVEL_INFO;
@@ -102,9 +120,11 @@ static hy_s32_t _bool_module_create(_main_context_s *context)
 
 static void _handle_module_destroy(_main_context_s **context_pp)
 {
+    _main_context_s *context = *context_pp;
+
     // note: 增加或删除要同步到HyModuleCreateHandle_s中
     HyModuleDestroyHandle_s module[] = {
-        {NULL, NULL, NULL},
+        {"hy_protocol",     (void **)&context->protocol_h,  (HyModuleDestroyHandleCb_t)HyProtocolDestroy},
     };
 
     HY_MODULE_RUN_DESTROY_HANDLE(module);
@@ -112,9 +132,16 @@ static void _handle_module_destroy(_main_context_s **context_pp)
 
 static hy_s32_t _handle_module_create(_main_context_s *context)
 {
+    HyProtocolConfig_s protocol_c;
+    HY_MEMSET(&protocol_c, sizeof(protocol_c));
+    protocol_c.fifo_capacity = HY_PROTOCOL_STRUCT_LEN_MAX * 5;
+    protocol_c.save_c.data_write_cb = _data_write_cb;
+    protocol_c.save_c.version_cb    = _version_cb;
+    protocol_c.save_c.args          = context;
+
     // note: 增加或删除要同步到HyModuleDestroyHandle_s中
     HyModuleCreateHandle_s module[] = {
-        {NULL, NULL, NULL, NULL, NULL},
+        {"hy_protocol",     (void **)&context->protocol_h,  &protocol_c,    (HyModuleCreateHandleCb_t)HyProtocolCreate,     (HyModuleDestroyHandleCb_t)HyProtocolDestroy},
     };
 
     HY_MODULE_RUN_CREATE_HANDLE(module);
@@ -143,10 +170,28 @@ int main(int argc, char *argv[])
 
         LOGE("version: %s, data: %s, time: %s \n", VERSION, __DATE__, __TIME__);
 
-        while (!context->is_exit) {
-            sleep(1);
+        context->server_fd = HySocketCreate(HY_SOCKET_DOMAIN_TCP);
+        if (-1 == context->server_fd) {
+            LOGE("socket create failed \n");
+            break;
         }
+
+        if ( -1 == HySocketConnect(context->server_fd,
+                                   _PROTOCOL_SERVER_IP, _PROTOCOL_PORT)) {
+            LOGE("socket connect server failed \n");
+            break;
+        }
+
+        if (-1 == HyProtocolVersionGet(context->protocol_h)) {
+            LOGE("protocol version get failed \n");
+            break;
+        }
+
+        // while (!context->is_exit) {
+        // }
     } while (0);
+
+    HySocketDestroy(&context->server_fd);
 
     void (*destroy_arr[])(_main_context_s **context_pp) = {
         _handle_module_destroy,
