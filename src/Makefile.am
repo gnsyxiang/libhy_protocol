@@ -46,6 +46,7 @@ _include_com    += \
                    -I$(top_srcdir)/include
 
 _sources_com    += \
+                   protocol.c \
                    hy_protocol.c
 
 _cppflags_com   += \
