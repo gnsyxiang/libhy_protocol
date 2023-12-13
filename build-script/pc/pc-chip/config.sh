@@ -11,11 +11,13 @@ cross_gcc_path=
 
 configure_param=
 
-cppflag=-fstack-protector-all
+cppflag=-fstack-protector-all -Wno-error=format-overflow=
 cflag=
 cxxflag=
 ldflag=-rdynamic
 lib=
+debug=-g -O0
+release=-O2 -DNDEBUG
 
 install_path=/mnt/nfs/pc/pc-chip
 
