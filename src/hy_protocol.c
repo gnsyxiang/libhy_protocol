@@ -37,7 +37,7 @@ hy_s32_t HyProtocolVersionGet(HyProtocol_s *handle)
 
     HY_ASSERT_RET_VAL(!handle, -1);
 
-    protocol_head_init(&head, HY_PROTOCOL_CMD_VERSION, 0);
+    PROTOCOL_HEAD_INIT(head, HY_PROTOCOL_CMD_VERSION, 0);
 
     if (save_c->data_write_cb) {
         head.check_sum = protocol_generate_sum(&head, sizeof(head));

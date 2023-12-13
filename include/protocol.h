@@ -41,12 +41,12 @@ typedef struct {
     char        data[0];            ///< data数据，没有长度，方便程序处理用
 } PACKED_4 protocol_head_s;
 
-inline void protocol_head_init(protocol_head_s *head, hy_u32_t cmd, hy_u32_t len)
-{
-    head->magic     = PROTOCOL_MAGIC;
-    head->cmd       = cmd;
-    head->len       = len;
-}
+#define PROTOCOL_HEAD_INIT(_head, _cmd, _len)   \
+do {                                            \
+    (_head).magic     = PROTOCOL_MAGIC;         \
+    (_head).cmd       = (_cmd);                 \
+    (_head).len       = (_len);                 \
+} while (0)
 
 struct HyProtocol_s {
     HyProtocolSaveConfig_s  save_c;
