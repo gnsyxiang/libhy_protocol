@@ -2,7 +2,7 @@
  * 
  * Release under GPLv-3.0.
  * 
- * @file    hy_protocol_server_demo.c
+ * @file    hy_protocol_client_demo.c
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    12/10 2023 10:52
@@ -21,17 +21,17 @@
 
 #include <hy_log/hy_log.h>
 
-#include "config.h"
-
 #include <hy_utils/hy_mem.h>
 #include <hy_utils/hy_string.h>
 #include <hy_utils/hy_signal.h>
 #include <hy_utils/hy_module.h>
 #include <hy_utils/hy_utils.h>
 
+#include "config.h"
+
 #include "hy_protocol.h"
 
-#define _APP_NAME "hy_protocol_server_demo"
+#define _APP_NAME "hy_protocol_client_demo"
 
 typedef struct {
     hy_s32_t    is_exit;

@@ -51,6 +51,7 @@ CHECK_LIBHY_UTILS
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_C_INLINE
 
 # Checks for library functions.
 
@@ -71,6 +72,8 @@ AC_CONFIG_FILES([Makefile
                  build-script/rock-chips/rk3568/Makefile
                  doc/Makefile
                  example/Makefile
+                 example/client/Makefile
+                 example/server/Makefile
                  include/Makefile
                  res/Makefile
                  res/voice/Makefile

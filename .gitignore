@@ -85,6 +85,6 @@ hy_protocol.pc
 *.lo
 *.la
 
-example/hy_*_demo
-test/hy_*_test
+hy_*_demo
+hy_*_test
 
