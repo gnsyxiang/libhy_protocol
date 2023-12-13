@@ -29,7 +29,7 @@
 
 #include "hy_protocol.h"
 
-hy_s32_t HyProtocolVersionGet(HyProtocol *handle)
+hy_s32_t HyProtocolVersionGet(HyProtocol_s *handle)
 {
     hy_s32_t ret = -1;
     protocol_head_s head;
@@ -48,7 +48,7 @@ hy_s32_t HyProtocolVersionGet(HyProtocol *handle)
     return ret;
 }
 
-hy_s32_t HyProtocolDataInsert(HyProtocol *handle, const void *buf, hy_u32_t len)
+hy_s32_t HyProtocolDataInsert(HyProtocol_s *handle, const void *buf, hy_u32_t len)
 {
     hy_u32_t ret;
 
@@ -60,7 +60,7 @@ hy_s32_t HyProtocolDataInsert(HyProtocol *handle, const void *buf, hy_u32_t len)
     return (ret == len) ? 0 : -1;
 }
 
-void HyProtocolDataDispatch(HyProtocol *handle)
+void HyProtocolDataDispatch(HyProtocol_s *handle)
 {
     hy_s32_t ret;
     hy_s16_t check_sum;
@@ -115,9 +115,9 @@ void HyProtocolDataDispatch(HyProtocol *handle)
     }
 }
 
-void HyProtocolDestroy(HyProtocol **handle_pp)
+void HyProtocolDestroy(HyProtocol_s **handle_pp)
 {
-    HyProtocol *handle = *handle_pp;
+    HyProtocol_s *handle = *handle_pp;
 
     HY_ASSERT_RET(!handle_pp || !handle);
 
@@ -127,14 +127,14 @@ void HyProtocolDestroy(HyProtocol **handle_pp)
     HY_MEM_FREE_PP(handle_pp);
 }
 
-HyProtocol *HyProtocolCreate(HyProtocolConfig_s *protocol_c)
+HyProtocol_s *HyProtocolCreate(HyProtocolConfig_s *protocol_c)
 {
-    HyProtocol *handle = NULL;
+    HyProtocol_s *handle = NULL;
 
     HY_ASSERT_RET_VAL(!protocol_c, NULL);
 
     do {
-        handle = HY_MEM_CALLOC_BREAK(HyProtocol *, sizeof(HyProtocol));
+        handle = HY_MEM_CALLOC_BREAK(HyProtocol_s *, sizeof(HyProtocol_s));
 
         HY_MEMCPY(&handle->save_c, &protocol_c->save_c, sizeof(handle->save_c));
 

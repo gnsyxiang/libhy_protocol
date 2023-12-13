@@ -48,7 +48,7 @@ inline void protocol_head_init(protocol_head_s *head, hy_u32_t cmd, hy_u32_t len
     head->len       = len;
 }
 
-struct HyProtocol {
+struct HyProtocol_s {
     HyProtocolSaveConfig_s  save_c;
 
     HyFifo_s                *fifo_h;

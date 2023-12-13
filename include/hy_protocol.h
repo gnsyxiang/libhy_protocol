@@ -101,7 +101,7 @@ typedef struct {
     hy_u32_t                    fifo_capacity;      ///< fifo大小
 } HyProtocolConfig_s;
 
-typedef struct HyProtocol HyProtocol;
+typedef struct HyProtocol_s HyProtocol_s;
 
 /**
  * @brief 创建协议模块
@@ -109,21 +109,21 @@ typedef struct HyProtocol HyProtocol;
  * @param protocol_c 配置参数，详见HyProtocolConfig_s
  * @return 成功返回句柄，失败返回NULL
  */
-HyProtocol *HyProtocolCreate(HyProtocolConfig_s *protocol_c);
+HyProtocol_s *HyProtocolCreate(HyProtocolConfig_s *protocol_c);
 
 /**
  * @brief 销毁协议模块
  *
  * @param handle_pp 句柄的地址（二级指针）
  */
-void HyProtocolDestroy(HyProtocol **handle_pp);
+void HyProtocolDestroy(HyProtocol_s **handle_pp);
 
 /**
  * @brief 协议总体流程处理
  *
  * @param handle 句柄
  */
-void HyProtocolDataDispatch(HyProtocol *handle);
+void HyProtocolDataDispatch(HyProtocol_s *handle);
 
 /**
  * @brief 向协议模块添加接收到的数据
@@ -134,7 +134,7 @@ void HyProtocolDataDispatch(HyProtocol *handle);
  *
  * @return 成功返回0，失败返回-1
  */
-hy_s32_t HyProtocolDataInsert(HyProtocol *handle, const void *buf, hy_u32_t len);
+hy_s32_t HyProtocolDataInsert(HyProtocol_s *handle, const void *buf, hy_u32_t len);
 
 /**
  * @brief 获取版本
@@ -143,7 +143,7 @@ hy_s32_t HyProtocolDataInsert(HyProtocol *handle, const void *buf, hy_u32_t len)
  *
  * @return 成功返回0，失败返回-1
  */
-hy_s32_t HyProtocolVersionGet(HyProtocol *handle);
+hy_s32_t HyProtocolVersionGet(HyProtocol_s *handle);
 
 #ifdef __cplusplus
 }
