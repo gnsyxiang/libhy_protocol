@@ -2,7 +2,7 @@
  * 
  * Release under GPLv-3.0.
  * 
- * @file    hy_protocol_server_demo.c
+ * @file    hy_protocol_client_demo.c
  * @brief   
  * @author  gnsyxiang <gnsyxiang@163.com>
  * @date    12/10 2023 10:52
@@ -18,6 +18,7 @@
  *     last modified: 12/10 2023 10:52
  */
 #include <stdio.h>
+#include <unistd.h>
 
 #include <hy_log/hy_log.h>
 
@@ -26,16 +27,43 @@
 #include <hy_utils/hy_signal.h>
 #include <hy_utils/hy_module.h>
 #include <hy_utils/hy_utils.h>
+#include <hy_utils/hy_socket.h>
+#include <hy_utils/hy_file.h>
 
 #include "config.h"
 
+#include "client_node.h"
 #include "hy_protocol.h"
 
-#define _APP_NAME "hy_protocol_server_demo"
+#define _APP_NAME               "hy_protocol_client_demo"
+#define _PROTOCOL_SERVER_IP     "192.168.0.251"
+#define _PROTOCOL_PORT          (34567)
 
 typedef struct {
-    hy_s32_t    is_exit;
+    hy_s32_t        is_exit;
+    hy_s32_t        server_fd;
+
+    client_node_s   *client_node;
 } _main_context_s;
+
+static hy_s32_t _data_write_cb(const void *buf, hy_u32_t len, void *args)
+{
+    _main_context_s *context = args;
+
+    return HyFileWrite(context->server_fd, buf, len);
+}
+
+static void _version_cb(HyProtocolVersion_s *version, void *args)
+{
+}
+
+static void _version_ack_cb(HyProtocolVersion_s *version, void *args)
+{
+    LOGI("project: %x \n", version->project);
+    LOGI("soft_version: %s \n", version->soft_version);
+    LOGI("hard_version: %s \n", version->hard_version);
+    LOGI("force_upgrade: %d \n", version->force_upgrade);
+}
 
 static void _signal_error_cb(void *args)
 {
@@ -67,7 +95,7 @@ static hy_s32_t _bool_module_create(_main_context_s *context)
 {
     HyLogConfig_s log_c;
     HY_MEMSET(&log_c, sizeof(HyLogConfig_s));
-    log_c.port                      = 56789;
+    log_c.port                      = 0;
     log_c.fifo_len                  = 10 * 1024;
     log_c.config_file               = "../res/hy_log/zlog.conf";
     log_c.save_c.level              = HY_LOG_LEVEL_INFO;
@@ -143,10 +171,41 @@ int main(int argc, char *argv[])
 
         LOGE("version: %s, data: %s, time: %s \n", VERSION, __DATE__, __TIME__);
 
+        context->server_fd = HySocketCreate(HY_SOCKET_DOMAIN_TCP);
+        if (-1 == context->server_fd) {
+            LOGE("socket create failed \n");
+            break;
+        }
+
+        if ( -1 == HySocketConnect(context->server_fd,
+                                   _PROTOCOL_SERVER_IP, _PROTOCOL_PORT)) {
+            LOGE("socket connect server failed \n");
+            break;
+        }
+
+        HyProtocolSaveConfig_s protocol_save_c;
+        HY_MEMSET(&protocol_save_c, sizeof(protocol_save_c));
+        protocol_save_c.data_write_cb   = _data_write_cb;
+        protocol_save_c.version_cb      = _version_cb;
+        protocol_save_c.version_ack_cb  = _version_ack_cb;
+        protocol_save_c.args            = context;
+        context->client_node = client_node_create(context->server_fd, &protocol_save_c);
+        if (!context->client_node) {
+            LOGE("create client node failed \n");
+            break;
+        }
+
+        if (-1 == HyProtocolVersionGet(context->client_node->protocol_h)) {
+            LOGE("HyProtocolVersionGet failed \n");
+            break;
+        }
+
         while (!context->is_exit) {
             sleep(1);
         }
     } while (0);
+
+    HySocketDestroy(&context->server_fd);
 
     void (*destroy_arr[])(_main_context_s **context_pp) = {
         _handle_module_destroy,

@@ -84,11 +84,20 @@ typedef hy_s32_t (*HyProtocolDataWriteCb_t)(const void *buf, hy_u32_t len, void 
 typedef void (*HyProtocolVersionCb_t)(HyProtocolVersion_s *version, void *args);
 
 /**
+ * @brief 版本信息回调
+ *
+ * @param version 版本信息
+ * @param args 用户数据
+ */
+typedef void (*HyProtocolVersionAckCb_t)(HyProtocolVersion_s *version, void *args);
+
+/**
  * @brief 配置参数
  */
 typedef struct {
     HyProtocolDataWriteCb_t     data_write_cb;      ///< 数据发送回调
     HyProtocolVersionCb_t       version_cb;         ///< 版本信息回调
+    HyProtocolVersionAckCb_t    version_ack_cb;
     void                        *args;              ///< 用户数据
 } HyProtocolSaveConfig_s;
 
@@ -117,13 +126,6 @@ HyProtocol_s *HyProtocolCreate(HyProtocolConfig_s *protocol_c);
  * @param handle_pp 句柄的地址（二级指针）
  */
 void HyProtocolDestroy(HyProtocol_s **handle_pp);
-
-/**
- * @brief 协议总体流程处理
- *
- * @param handle 句柄
- */
-void HyProtocolDataDispatch(HyProtocol_s *handle);
 
 /**
  * @brief 向协议模块添加接收到的数据

@@ -25,9 +25,11 @@ extern "C" {
 #endif
 
 #include <hy_log/hy_type.h>
+#include <hy_log/hy_log.h>
 
 #include <hy_utils/hy_compile.h>
-#include <hy_utils/hy_fifo.h>
+#include <hy_utils/hy_fifo_lock.h>
+#include <hy_utils/hy_thread.h>
 
 #include "hy_protocol.h"
 
@@ -43,15 +45,17 @@ typedef struct {
 
 #define PROTOCOL_HEAD_INIT(_head, _cmd, _len)   \
 do {                                            \
-    (_head).magic     = PROTOCOL_MAGIC;         \
-    (_head).cmd       = (_cmd);                 \
-    (_head).len       = (_len);                 \
+    (_head)->magic     = PROTOCOL_MAGIC;        \
+    (_head)->cmd       = (_cmd);                \
+    (_head)->len       = (_len);                \
 } while (0)
 
 struct HyProtocol_s {
     HyProtocolSaveConfig_s  save_c;
 
-    HyFifo_s                *fifo_h;
+    hy_s32_t                is_exit;
+    HyThread_s              *thread_h;
+    HyFifoLock_s            *fifo_lock_h;
 };
 
 hy_s16_t protocol_generate_sum(protocol_head_s *head, hy_u32_t len);
