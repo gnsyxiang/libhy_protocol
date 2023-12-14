@@ -45,10 +45,15 @@ typedef struct {
 
 #define PROTOCOL_HEAD_INIT(_head, _cmd, _len)   \
 do {                                            \
-    (_head)->magic     = PROTOCOL_MAGIC;        \
-    (_head)->cmd       = (_cmd);                \
-    (_head)->len       = (_len);                \
+    (_head)->magic      = PROTOCOL_MAGIC;       \
+    (_head)->cmd        = (_cmd);               \
+    (_head)->len        = (_len);               \
 } while (0)
+
+typedef struct {
+    protocol_head_s         head;
+    HyProtocolVersion_s     version;
+} protocol_version_s;
 
 struct HyProtocol_s {
     HyProtocolSaveConfig_s  save_c;

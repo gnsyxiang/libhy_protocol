@@ -18,6 +18,7 @@
  *     last modified: 12/10 2023 10:52
  */
 #include <stdio.h>
+#include <unistd.h>
 
 #include <hy_log/hy_log.h>
 
@@ -28,9 +29,6 @@
 #include <hy_utils/hy_utils.h>
 #include <hy_utils/hy_socket.h>
 #include <hy_utils/hy_file.h>
-#include <hy_utils/hy_thread.h>
-#include <hy_utils/hy_hex.h>
-#include <unistd.h>
 
 #include "config.h"
 
@@ -52,9 +50,6 @@ typedef struct {
 static hy_s32_t _data_write_cb(const void *buf, hy_u32_t len, void *args)
 {
     _main_context_s *context = args;
-
-    HY_HEX_ASCII(buf, len);
-    LOGI("fd: %d \n", client_node_fd_get(context->client_node));
 
     return HyFileWrite(client_node_fd_get(context->client_node), buf, len);
 }

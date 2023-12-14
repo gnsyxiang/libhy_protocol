@@ -29,13 +29,6 @@ extern "C" {
 #include <hy_utils/hy_compile.h>
 
 /**
- * @brief 命令字所对应的结构体的最大长度
- *
- * @note 里面使用的是栈空间，如果结构体太大则会引起栈空间溢出
- */
-#define HY_PROTOCOL_STRUCT_LEN_MAX      (1024)
-
-/**
  * @brief 协议命令字
  *
  * @note 如果需要传递参数，则相应命令字对应一个结构体(把相关数据封装在结构体内，方便后期维护)
@@ -76,7 +69,7 @@ typedef struct {
 typedef hy_s32_t (*HyProtocolDataWriteCb_t)(const void *buf, hy_u32_t len, void *args);
 
 /**
- * @brief 版本信息回调
+ * @brief 获取版本信息回调
  *
  * @param version 版本信息
  * @param args 用户数据
@@ -84,7 +77,7 @@ typedef hy_s32_t (*HyProtocolDataWriteCb_t)(const void *buf, hy_u32_t len, void 
 typedef void (*HyProtocolVersionCb_t)(HyProtocolVersion_s *version, void *args);
 
 /**
- * @brief 版本信息回调
+ * @brief 版本信息回复回调
  *
  * @param version 版本信息
  * @param args 用户数据
@@ -96,13 +89,17 @@ typedef void (*HyProtocolVersionAckCb_t)(HyProtocolVersion_s *version, void *arg
  */
 typedef struct {
     HyProtocolDataWriteCb_t     data_write_cb;      ///< 数据发送回调
-    HyProtocolVersionCb_t       version_cb;         ///< 版本信息回调
-    HyProtocolVersionAckCb_t    version_ack_cb;
+
+    HyProtocolVersionCb_t       version_cb;         ///< 获取版本信息回调
+    HyProtocolVersionAckCb_t    version_ack_cb;     ///< 版本信息回调
+
     void                        *args;              ///< 用户数据
 } HyProtocolSaveConfig_s;
 
 /**
  * @brief 配置参数
+ *
+ * @note 根据命令字后面的结构体大小和系统资源来确定fifo的容量，
  */
 typedef struct {
     HyProtocolSaveConfig_s      save_c;             ///< 配置参数
@@ -116,6 +113,7 @@ typedef struct HyProtocol_s HyProtocol_s;
  * @brief 创建协议模块
  *
  * @param protocol_c 配置参数，详见HyProtocolConfig_s
+ *
  * @return 成功返回句柄，失败返回NULL
  */
 HyProtocol_s *HyProtocolCreate(HyProtocolConfig_s *protocol_c);

@@ -19,8 +19,6 @@
  */
 #include <stdio.h>
 
-#include <hy_log/hy_log.h>
-
 #include "protocol.h"
 
 hy_s16_t protocol_generate_sum(protocol_head_s *head, hy_u32_t len)

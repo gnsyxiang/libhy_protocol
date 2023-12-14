@@ -24,79 +24,82 @@
 #include <hy_utils/hy_assert.h>
 #include <hy_utils/hy_mem.h>
 #include <hy_utils/hy_string.h>
-#include <hy_utils/hy_hex.h>
+#include <hy_utils/hy_utils.h>
 
-#include "hy_utils/hy_fifo_lock.h"
-#include "hy_utils/hy_thread.h"
 #include "protocol.h"
 
 #include "hy_protocol.h"
 
-static hy_s32_t _protocol_version_get_ack(HyProtocol_s *handle, char *buf, hy_s32_t len)
+static void _handle_cmd_version_cb(HyProtocol_s *handle)
 {
     hy_s32_t ret = -1;
-    protocol_head_s *head;
+    protocol_head_s head;
+    protocol_version_s protocol_version;
     HyProtocolSaveConfig_s *save_c = &handle->save_c;
-    hy_u32_t msg_len = sizeof(protocol_head_s) + sizeof(HyProtocolVersion_s);
 
-    HY_MEMSET(buf, len);
-    head = (protocol_head_s *)buf;
+    HyFifoLockRead(handle->fifo_lock_h, &head, sizeof(head));
 
-    PROTOCOL_HEAD_INIT(head, HY_PROTOCOL_CMD_VERSION_ACK, sizeof(HyProtocolVersion_s));
+    HY_MEMSET(&protocol_version, sizeof(protocol_version));
+
+    PROTOCOL_HEAD_INIT(&protocol_version.head, HY_PROTOCOL_CMD_VERSION_ACK, sizeof(HyProtocolVersion_s));
 
     if (save_c->version_cb) {
-        save_c->version_cb((HyProtocolVersion_s *)head->data, save_c->args);
+        save_c->version_cb(&protocol_version.version, save_c->args);
     }
 
-    head->check_sum = protocol_generate_sum(head, msg_len);
+    protocol_version.head.check_sum = protocol_generate_sum(&protocol_version.head, sizeof(protocol_version));
     if (save_c->data_write_cb) {
-        ret = save_c->data_write_cb(head, msg_len, save_c->args);
+        ret = save_c->data_write_cb(&protocol_version, sizeof(protocol_version), save_c->args);
+        if (-1 == ret) {
+            LOGE("protocol data write fadild \n");
+        }
     }
+}
 
-    return ret;
+static void _handle_cmd_version_ack_cb(HyProtocol_s *handle)
+{
+    protocol_version_s protocol_version;
+    HyProtocolSaveConfig_s *save_c = &handle->save_c;
+
+    HY_MEMSET(&protocol_version, sizeof(protocol_version));
+
+    HyFifoLockRead(handle->fifo_lock_h, &protocol_version, sizeof(protocol_version));
+    if (save_c->version_ack_cb) {
+        save_c->version_ack_cb(&protocol_version.version, save_c->args);
+    }
 }
 
 static hy_s32_t _thread_loop_cb(void *args)
 {
     HyProtocol_s *handle = args;
-    protocol_head_s *head;
-    hy_u32_t msg_len = 0;
-    HyProtocolSaveConfig_s *save_c = &handle->save_c;
-    char buf_read[HY_PROTOCOL_STRUCT_LEN_MAX];
-    char buf_write[HY_PROTOCOL_STRUCT_LEN_MAX];
+    protocol_head_s head;
+    hy_u32_t i;
 
     while (!handle->is_exit) {
-        head = (protocol_head_s *)buf_read;
-        HyFifoLockReadPeek(handle->fifo_lock_h, head, sizeof(protocol_head_s));
+        HyFifoLockReadPeek(handle->fifo_lock_h, &head, sizeof(head));
 
-        HY_HEX_ASCII(head, sizeof(*head));
-
-        if (head->magic != PROTOCOL_MAGIC) {
-            HyFifoLockRead(handle->fifo_lock_h, head, 1);
+        if (head.magic != PROTOCOL_MAGIC) {
+            HyFifoLockRead(handle->fifo_lock_h, &head, 1);
             continue;
         }
 
-        msg_len = sizeof(*head);
-
-        switch (head->cmd) {
-            case HY_PROTOCOL_CMD_VERSION:
-                LOGI("-----1------haha \n");
-
-                HyFifoLockRead(handle->fifo_lock_h, head, msg_len);
-                _protocol_version_get_ack(handle, buf_write, sizeof(buf_write));
-                break;
-            case HY_PROTOCOL_CMD_VERSION_ACK:
-                LOGI("-----2------haha \n");
-                HyFifoLockRead(handle->fifo_lock_h, head, msg_len + sizeof(HyProtocolVersion_s));
-                HY_HEX_ASCII((char *)head, (hy_u32_t)(msg_len + sizeof(HyProtocolVersion_s)));
-                LOGI("-----3------haha \n");
-                if (save_c->version_ack_cb) {
-                    save_c->version_ack_cb((HyProtocolVersion_s *)head->data, save_c->args);
+        struct {
+            hy_u32_t cmd;
+            void (*handle_cmd_cb)(HyProtocol_s *handle);
+        } _handle_cmd_arr[] = {
+            {HY_PROTOCOL_CMD_VERSION,       _handle_cmd_version_cb},
+            {HY_PROTOCOL_CMD_VERSION_ACK,   _handle_cmd_version_ack_cb},
+        };
+        for (i = 0; i < HY_UTILS_ARRAY_CNT(_handle_cmd_arr); i++) {
+            if (head.cmd == _handle_cmd_arr[i].cmd) {
+                if (_handle_cmd_arr[i].handle_cmd_cb) {
+                    _handle_cmd_arr[i].handle_cmd_cb(handle);
+                    break;
                 }
-                break;
-            default:
-                LOGE("error type: %d<%x> \n", head->cmd, head->cmd);
-                break;
+            }
+        }
+        if (i >= HY_UTILS_ARRAY_CNT(_handle_cmd_arr)) {
+            LOGE("error cmd: %d<%d> \n", head.cmd, head.cmd);
         }
     }
 

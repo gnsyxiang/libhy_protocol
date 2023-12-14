@@ -24,11 +24,9 @@
 extern "C" {
 #endif
 
-#include <hy_log/hy_type.h>
-
 #include <hy_utils/hy_thread.h>
 
-#include "protocol.h"
+#include "hy_protocol.h"
 
 typedef struct {
     hy_s32_t        fd;                 ///< 客户端fd

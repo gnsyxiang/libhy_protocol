@@ -19,19 +19,21 @@
  */
 #include <stdio.h>
 
+#include <hy_log/hy_log.h>
+
 #include <hy_utils/hy_assert.h>
 #include <hy_utils/hy_mem.h>
 #include <hy_utils/hy_string.h>
 #include <hy_utils/hy_file.h>
-#include <hy_utils/hy_hex.h>
 
 #include "client_node.h"
-#include "hy_protocol.h"
+
+#define _CLIENT_NODE_BUF_LEN_MAX    (1024)
 
 static hy_s32_t _thread_read_loop_cb(void *args)
 {
     client_node_s *handle = args;
-    char buf[HY_PROTOCOL_STRUCT_LEN_MAX];
+    char buf[_CLIENT_NODE_BUF_LEN_MAX];
     hy_s32_t ret;
 
     while (!handle->is_exit) {
@@ -41,8 +43,6 @@ static hy_s32_t _thread_read_loop_cb(void *args)
             LOGE("socket read failed \n");
             break;
         }
-
-        HY_HEX_ASCII(buf, ret);
 
         if (-1 == HyProtocolDataInsert(handle->protocol_h, buf, ret)) {
             LOGE("insert data to protocol failed \n");
@@ -90,7 +90,7 @@ client_node_s *client_node_create(hy_u32_t fd, HyProtocolSaveConfig_s *protocol_
 
         HY_MEMSET(&protocol_c, sizeof(protocol_c));
         HY_MEMCPY(&protocol_c.save_c, protocol_save_c, sizeof(*protocol_save_c));
-        protocol_c.fifo_capacity = HY_PROTOCOL_STRUCT_LEN_MAX * 5;
+        protocol_c.fifo_capacity = _CLIENT_NODE_BUF_LEN_MAX * 5;
         handle->protocol_h = HyProtocolCreate(&protocol_c);
         if (!handle->protocol_h) {
             LOGE("create protocol failed \n");
