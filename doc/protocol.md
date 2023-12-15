@@ -85,6 +85,8 @@ typedef struct {
 } HyProtocolVersion_s;
 ```
 
+协议使用请求-回复的形式，完成信息的交换
+
 消息不应该阻塞，异步调用
 
 每个命令字都对应一个结构体，方便后期维护，不要使用cmd_on, cmd_off命令字，后期扩展性不好

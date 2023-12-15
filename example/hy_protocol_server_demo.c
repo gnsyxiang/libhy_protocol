@@ -64,6 +64,14 @@ static void _version_cb(HyProtocolVersion_s *version, void *args)
     version->force_upgrade = HY_PROTOCOL_FORCE_UPGRADE_OFF;
 }
 
+static void _version_ack_cb(HyProtocolVersion_s *version, void *args)
+{
+    LOGI("project: %x \n", version->project);
+    LOGI("soft_version: %s \n", version->soft_version);
+    LOGI("hard_version: %s \n", version->hard_version);
+    LOGI("force_upgrade: %d \n", version->force_upgrade);
+}
+
 static void _signal_error_cb(void *args)
 {
     _main_context_s *context = args;
@@ -198,10 +206,16 @@ int main(int argc, char *argv[])
             HY_MEMSET(&protocol_save_c, sizeof(protocol_save_c));
             protocol_save_c.data_write_cb   = _data_write_cb;
             protocol_save_c.version_cb      = _version_cb;
+            protocol_save_c.version_ack_cb  = _version_ack_cb;
             protocol_save_c.args            = context;
             context->client_node = client_node_create(client_fd, &protocol_save_c);
             if (!context->client_node) {
                 LOGE("create client node failed \n");
+                break;
+            }
+
+            if (-1 == HyProtocolVersionGet(context->client_node->protocol_h)) {
+                LOGE("HyProtocolVersionGet failed \n");
                 break;
             }
         }

@@ -28,6 +28,7 @@
 #include <hy_utils/hy_utils.h>
 #include <hy_utils/hy_socket.h>
 #include <hy_utils/hy_file.h>
+#include <hy_utils/hy_string.h>
 
 #include "config.h"
 
@@ -35,6 +36,8 @@
 #include "hy_protocol.h"
 
 #define _APP_NAME               "hy_protocol_client_demo"
+#define _APP_SOFT_VERSION       "hy_protocol_client_demo-0.1.0"
+#define _APP_HARD_VERSION       "hy_protocol_client_demo-1.0.0"
 #define _PROTOCOL_SERVER_IP     "192.168.0.251"
 #define _PROTOCOL_PORT          (34567)
 
@@ -54,6 +57,12 @@ static hy_s32_t _data_write_cb(const void *buf, hy_u32_t len, void *args)
 
 static void _version_cb(HyProtocolVersion_s *version, void *args)
 {
+    version->project = 0xff;
+    HY_STRNCPY(version->soft_version, sizeof(version->soft_version),
+               _APP_SOFT_VERSION, HY_STRLEN(_APP_SOFT_VERSION));
+    HY_STRNCPY(version->hard_version, sizeof(version->hard_version),
+               _APP_HARD_VERSION, HY_STRLEN(_APP_HARD_VERSION));
+    version->force_upgrade = HY_PROTOCOL_FORCE_UPGRADE_OFF;
 }
 
 static void _version_ack_cb(HyProtocolVersion_s *version, void *args)
